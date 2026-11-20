@@ -1,0 +1,57 @@
+[
+ {
+  "model": "BAAI/bge-m3",
+  "chunk_size": 600,
+  "chunk_overlap": 120,
+  "hit@1": 0.645,
+  "hit@3": 0.839,
+  "hit@5": 0.871,
+  "mrr": 0.739,
+  "mean_top_score_in_book": 0.605,
+  "mean_top_score_not_in_book": 0.442
+ },
+ {
+  "model": "BAAI/bge-m3",
+  "chunk_size": 300,
+  "chunk_overlap": 60,
+  "hit@1": 0.613,
+  "hit@3": 0.871,
+  "hit@5": 0.903,
+  "mrr": 0.734,
+  "mean_top_score_in_book": 0.614,
+  "mean_top_score_not_in_book": 0.436
+ },
+ {
+  "model": "BAAI/bge-m3",
+  "chunk_size": 1000,
+  "chunk_overlap": 200,
+  "hit@1": 0.645,
+  "hit@3": 0.774,
+  "hit@5": 0.839,
+  "mrr": 0.715,
+  "mean_top_score_in_book": 0.603,
+  "mean_top_score_not_in_book": 0.442
+ },
+ {
+  "model": "intfloat/multilingual-e5-base",
+  "chunk_size": 600,
+  "chunk_overlap": 120,
+  "hit@1": 0.581,
+  "hit@3": 0.774,
+  "hit@5": 0.839,
+  "mrr": 0.694,
+  "mean_top_score_in_book": 0.858,
+  "mean_top_score_not_in_book": 0.78
+ },
+ {
+  "model": "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2",
+  "chunk_size": 600,
+  "chunk_overlap": 120,
+  "hit@1": 0.097,
+  "hit@3": 0.097,
+  "hit@5": 0.161,
+  "mrr": 0.111,
+  "mean_top_score_in_book": 0.884,
+  "mean_top_score_not_in_book": 0.806
+ }
+]
