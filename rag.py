@@ -8,6 +8,7 @@ from langchain_core.documents import Document
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.retrievers import BaseRetriever
+from pydantic import PrivateAttr
 
 import config
 from chunking import normalize
@@ -18,9 +19,10 @@ NO_ANSWER = "দুঃখিত, এই প্রশ্নের উত্তর
 SYSTEM_PROMPT = f"""তুমি রবীন্দ্রনাথ ঠাকুরের উপন্যাস "রাজর্ষি" বিষয়ে প্রশ্নের উত্তর দাও।
 নিয়ম:
 1. শুধু নিচের CONTEXT অংশে দেওয়া বইয়ের উদ্ধৃতি থেকে উত্তর দেবে। নিজের জানা তথ্য, অনুমান বা বইয়ের বাইরের কিছু যোগ করবে না।
-2. প্রতিটি তথ্যের পরে যে উদ্ধৃতি থেকে নেওয়া তার নম্বর বন্ধনীতে দেবে, যেমন [1] বা [2][3]।
-3. CONTEXT-এ উত্তর না থাকলে কোনো নম্বর ছাড়া হুবহু এই বাক্যটি লিখবে: {NO_ANSWER}
-4. উত্তর বাংলায়, সংক্ষেপে ও স্পষ্টভাবে দেবে (২ থেকে ৫ বাক্য)।"""
+2. আগে সবগুলো উদ্ধৃতি পড়বে, তারপর যে উদ্ধৃতিতে প্রশ্নের সরাসরি উত্তর আছে সেটি ব্যবহার করবে। শুধু যা জিজ্ঞাসা করা হয়েছে তার উত্তর দেবে; প্রশ্নে চাওয়া হয়নি এমন বাড়তি ঘটনা বা তথ্য লিখবে না। কে কাকে কী বলল বা করল তা উদ্ধৃতির সঙ্গে মিলিয়ে নেবে।
+3. প্রতিটি তথ্যের পরে যে উদ্ধৃতি থেকে নেওয়া তার নম্বর বন্ধনীতে দেবে, যেমন [1] বা [2][3]।
+4. কোনো উদ্ধৃতিতেই উত্তর না থাকলে কোনো নম্বর ছাড়া হুবহু এই বাক্যটি লিখবে: {NO_ANSWER}
+5. উত্তর বাংলায়, সংক্ষেপে ও স্পষ্টভাবে দেবে (১ থেকে ৪ বাক্য)। সাধারণ লেখা দেবে, বোল্ড বা অন্য মার্কডাউন ব্যবহার করবে না।"""
 
 USER_PROMPT = """CONTEXT:
 {context}
@@ -29,17 +31,42 @@ USER_PROMPT = """CONTEXT:
 
 
 class ScoredRetriever(BaseRetriever):
-    """FAISS similarity search that keeps the cosine score in each document's metadata."""
+    """FAISS similarity search that keeps the cosine score in each document's metadata.
+
+    With window > 0 each hit is widened with its neighbouring chunks from the same chapter,
+    so the LLM sees the whole scene around the matching passage.
+    """
 
     vectorstore: FAISS
     k: int = config.TOP_K
+    window: int = config.WINDOW
+
+    _by_id: dict | None = PrivateAttr(default=None)
+
+    def _neighbours(self) -> dict:
+        if self._by_id is None:
+            self._by_id = {d.metadata["chunk_id"]: d for d in self.vectorstore.docstore._dict.values()}
+        return self._by_id
 
     def _get_relevant_documents(self, query: str, *, run_manager: CallbackManagerForRetrieverRun) -> list[Document]:
         results = self.vectorstore.similarity_search_with_score(normalize(query), k=self.k)
-        docs = []
+        passages = []
         for doc, score in results:
-            meta = dict(doc.metadata, score=round(float(score), 4))
-            docs.append(Document(page_content=doc.page_content, metadata=meta))
+            chapter, idx = doc.metadata["chunk_id"].split("-")
+            lo, hi = int(idx) - self.window, int(idx) + self.window
+            for p in passages:
+                if p["chapter"] == chapter and lo <= p["hi"] + 1 and hi >= p["lo"] - 1:
+                    p["lo"], p["hi"] = min(lo, p["lo"]), max(hi, p["hi"])
+                    break
+            else:
+                meta = dict(doc.metadata, score=round(float(score), 4))
+                passages.append({"chapter": chapter, "lo": lo, "hi": hi, "meta": meta})
+
+        by_id = self._neighbours()
+        docs = []
+        for p in passages:
+            parts = [by_id[c].page_content for j in range(p["lo"], p["hi"] + 1) if (c := f"{p['chapter']}-{j:03d}") in by_id]
+            docs.append(Document(page_content="\n".join(parts), metadata=p["meta"]))
         return docs
 
 
@@ -59,8 +86,8 @@ def load_store(model: str = config.EMBED_MODEL, size: int = config.CHUNK_SIZE, o
     return FAISS.load_local(str(path), get_embeddings(model), allow_dangerous_deserialization=True)
 
 
-def get_retriever(k: int = config.TOP_K, **kw) -> ScoredRetriever:
-    return ScoredRetriever(vectorstore=load_store(**kw), k=k)
+def get_retriever(k: int = config.TOP_K, window: int = config.WINDOW, **kw) -> ScoredRetriever:
+    return ScoredRetriever(vectorstore=load_store(**kw), k=k, window=window)
 
 
 def get_llm():

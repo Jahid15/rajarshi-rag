@@ -21,7 +21,8 @@ USER_AGENT = "BanglaBookRAG/1.0 (student coursework)"
 EMBED_MODEL = os.getenv("EMBED_MODEL", "BAAI/bge-m3")
 CHUNK_SIZE = int(os.getenv("CHUNK_SIZE", "600"))
 CHUNK_OVERLAP = int(os.getenv("CHUNK_OVERLAP", "120"))
-TOP_K = int(os.getenv("TOP_K", "5"))
+TOP_K = int(os.getenv("TOP_K", "8"))
+WINDOW = int(os.getenv("WINDOW", "2"))
 MIN_SCORE = float(os.getenv("MIN_SCORE", "0.45"))
 
 LLM_PROVIDER = os.getenv("LLM_PROVIDER", "gemini").lower()
@@ -30,7 +31,7 @@ LLM_MODEL = os.getenv("LLM_MODEL", "")
 DEFAULT_MODELS = {
     "gemini": "gemini-2.5-flash",
     "groq": "llama-3.3-70b-versatile",
-    "anthropic": "claude-opus-5-5",
+    "anthropic": "claude-haiku-5-5",
 }
 
 

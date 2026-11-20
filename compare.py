@@ -21,7 +21,7 @@ KS = (1, 3, 5)
 def evaluate(model, size, overlap, questions, negatives):
     if not (config.index_dir(model, size, overlap) / "index.faiss").exists():
         build(model, size, overlap)
-    retriever = get_retriever(k=max(KS), model=model, size=size, overlap=overlap)
+    retriever = get_retriever(k=max(KS), window=0, model=model, size=size, overlap=overlap)
     hits = {k: 0 for k in KS}
     rr = []
     pos_scores = []

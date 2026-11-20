@@ -16,7 +16,7 @@ Wikisource index page
    -> chunking.py      Unicode normalisation + Bangla-aware recursive splitting (600 chars, 120 overlap)
    -> embeddings.py    BAAI/bge-m3 (multilingual, normalised vectors)
    -> build_index.py   FAISS index (inner product = cosine similarity)
-   -> rag.py           LangChain retriever (top 5) -> score gate -> prompt -> LLM -> chapter citations
+   -> rag.py           LangChain retriever (top 8, widened with neighbouring chunks) -> score gate -> prompt -> LLM -> chapter citations
    -> app.py           Streamlit chat interface
 ```
 
@@ -44,7 +44,7 @@ LLM providers (set `LLM_PROVIDER` in `.env`):
 |---|---|---|---|
 | gemini | GOOGLE_API_KEY | gemini-2.5-flash | free tier, good Bangla |
 | groq | GROQ_API_KEY | llama-3.3-70b-versatile | free tier, fast |
-| anthropic | ANTHROPIC_API_KEY | claude-opus-5-5 | paid |
+| anthropic | ANTHROPIC_API_KEY | claude-haiku-5-5 | paid, cheap and fast, used for the results in this repo |
 
 Any other model of the same provider can be used with `LLM_MODEL`.
 
@@ -92,8 +92,10 @@ A default English model such as all-MiniLM-L6-v2 cannot read Bangla at all. Even
 ## Vector store and retriever
 
 - Vector store: FAISS (`langchain_community.vectorstores.FAISS`) with `MAX_INNER_PRODUCT`. The embeddings are normalised, so the score is the cosine similarity.
-- Retriever: `ScoredRetriever` in `rag.py`, a LangChain `BaseRetriever` subclass that returns the top 5 chunks and keeps each similarity score in the metadata, so the app can show it and use it for the no-answer check.
+- Retriever: `ScoredRetriever` in `rag.py`, a LangChain `BaseRetriever` subclass. It finds the top 8 chunks, keeps each similarity score in the metadata (shown in the app and used for the no-answer check), and widens each hit with the 2 chunks before and after it from the same chapter. Overlapping windows in the same chapter are merged into one passage, so no text is repeated.
 - Chain: LangChain LCEL, `ChatPromptTemplate | chat model | StrOutputParser`.
+
+Why widen the hits: in a novel the sentence that best matches a question is often next to the sentence that answers it. For "জয়সিংহ কীভাবে মারা যান?" the best match is the aftermath of his death, and the stabbing itself is two chunks earlier. With plain top 5 chunks the LLM said the cause of death was not given. With widened passages it answers correctly. Small chunks are good for finding the right place, and the wider passage gives the LLM the full scene.
 
 ## Citations and no-answer handling
 
@@ -109,7 +111,7 @@ No-answer handling has two layers:
 
 ## Chat interface
 
-`streamlit run app.py` opens a chat page. Each answer shows the cited chapters with links to Wikisource, and an expander with the retrieved passages and their similarity scores. The sidebar can change k and the score threshold.
+`streamlit run app.py` opens a chat page at http://localhost:8501. Each answer shows the cited chapters with links to Wikisource, and an expander with the retrieved passages and their similarity scores. The sidebar can change k and the score threshold.
 
 ## 10 test questions
 
@@ -120,7 +122,7 @@ The questions with expected answers and gold chapters are in `tests/test_questio
 | 1 | গোবিন্দমাণিক্য কোন রাজ্যের রাজা ছিলেন? | ত্রিপুরার মহারাজা | প্রথম পরিচ্ছেদ (আরও কয়েকটিতে) |
 | 2 | মন্দিরের সিঁড়িতে রক্তের দাগ দেখে হাসি রাজাকে কী প্রশ্ন করেছিল? | "এত রক্ত কেন!" | দ্বিতীয় পরিচ্ছেদ |
 | 3 | হাসি ও তাতার কাকার নাম কী? | কেদারেশ্বর | দ্বিতীয় পরিচ্ছেদ |
-| 4 | রঘুপতি নক্ষত্ররায়কে কী করতে বলেছিলেন? | রাজা হতে হলে মায়ের জন্য গোবিন্দমাণিক্যের রক্ত (রাজরক্ত) আনতে হবে | পঞ্চম পরিচ্ছেদ |
+| 4 | রাজা হওয়ার জন্য রঘুপতি নক্ষত্ররায়কে প্রথমে কী আনতে বলেছিলেন? | মায়ের জন্য গোবিন্দমাণিক্যের রক্ত (রাজরক্ত) | পঞ্চম পরিচ্ছেদ |
 | 5 | জয়সিংহ কীভাবে মারা যান? | চতুর্দশ দেবতার পূজার রাতে প্রতিমার সামনে নিজের বুকে ছুরি বসিয়ে "রাজরক্ত" দেন | পঞ্চদশ পরিচ্ছেদ |
 | 6 | বিচারে রঘুপতিকে কী শাস্তি দেওয়া হয়েছিল? | আট বছরের নির্বাসন (নক্ষত্ররায়েরও) | অষ্টাদশ পরিচ্ছেদ |
 | 7 | নক্ষত্ররায় রাজা হয়ে কী নাম গ্রহণ করেন? | ছত্রমাণিক্য | অষ্টাত্রিংশ পরিচ্ছেদ |
@@ -130,7 +132,11 @@ The questions with expected answers and gold chapters are in `tests/test_questio
 
 Question 9 is stopped by the score gate. Question 10 is about the book's own temple, so it passes the gate and tests that the LLM refuses to guess.
 
-Retrieval check without the LLM: 10/10 (`results/test_results_retrieval.md`): for questions 1 to 8 a chunk from the correct chapter is in the top 5, question 9 is blocked by the gate, and question 10 is passed to the LLM.
+Results with Claude Haiku 5.5 (`results/test_results.md`): 10/10. All 8 answerable questions are answered correctly with the right chapter cited, and both questions that are not in the book get "দুঃখিত, এই প্রশ্নের উত্তর বইটিতে পাওয়া যায়নি।" with no sources. PASS is checked automatically from the cited chapters; I also read every answer against the book.
+
+Retrieval check without the LLM: 10/10 (`results/test_results_retrieval.md`).
+
+What I changed after the first full run (8/10): with plain top 5 chunks, the bot said the answer to Q8 was not in the book (the epilogue chunk was ranked 8th) and could not say how Jaisingh died (Q5). Retrieving 8 chunks and widening them with neighbours fixed both. Q4 was reworded because the first version ("রঘুপতি নক্ষত্ররায়কে কী করতে বলেছিলেন?") has several true answers in different chapters.
 
 ## Bonus: comparing embedding models and chunking
 

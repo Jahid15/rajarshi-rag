@@ -6,7 +6,7 @@
 
 Expected: গোবিন্দমাণিক্য ত্রিপুরার মহারাজা ছিলেন।
 
-Top score: 0.568, retrieved chapters: [42, 45, 42, 8, 44]
+Top score: 0.568, retrieved chapters: [42, 45, 42, 8, 44, 37, 38]
 
 Result: PASS
 
@@ -14,7 +14,7 @@ Result: PASS
 
 Expected: হাসি জিজ্ঞাসা করেছিল, "এত রক্ত কেন!" এই প্রশ্নই রাজার মনে বলি নিয়ে সংশয় জাগায়।
 
-Top score: 0.644, retrieved chapters: [2, 2, 8, 8, 2]
+Top score: 0.644, retrieved chapters: [2, 2, 8, 1, 11, 3]
 
 Result: PASS
 
@@ -22,15 +22,15 @@ Result: PASS
 
 Expected: তাদের কাকার নাম কেদারেশ্বর। হাসি ও তাতার বাবা মা কেউ ছিল না।
 
-Top score: 0.558, retrieved chapters: [1, 1, 2, 2, 2]
+Top score: 0.558, retrieved chapters: [1, 2, 2, 8]
 
 Result: PASS
 
-## Q4. রঘুপতি নক্ষত্ররায়কে কী করতে বলেছিলেন?
+## Q4. রাজা হওয়ার জন্য রঘুপতি নক্ষত্ররায়কে প্রথমে কী আনতে বলেছিলেন?
 
 Expected: রঘুপতি বলেন নক্ষত্ররায় রাজা হবেন, কিন্তু তার আগে মা রাজরক্ত দেখতে চান, তাই নক্ষত্ররায়কে গোবিন্দমাণিক্যের রক্ত আনতে হবে।
 
-Top score: 0.674, retrieved chapters: [5, 28, 16, 31, 26]
+Top score: 0.713, retrieved chapters: [5, 31, 28, 16]
 
 Result: PASS
 
@@ -38,7 +38,7 @@ Result: PASS
 
 Expected: চতুর্দশ দেবতার পূজার রাতে জয়সিংহ মন্দিরে দেবীর প্রতিমার সামনে "রাজরক্ত" হিসেবে নিজের বুকে ছুরি বসিয়ে আত্মবিসর্জন দেন। তিনি রাজপুত ক্ষত্রিয় ও রাজবংশের সন্তান ছিলেন।
 
-Top score: 0.562, retrieved chapters: [15, 4, 38, 4, 14]
+Top score: 0.562, retrieved chapters: [15, 4, 38, 14, 40, 9]
 
 Result: PASS
 
@@ -46,7 +46,7 @@ Result: PASS
 
 Expected: দেবতার উদ্দেশে জীববলি দেওয়ার চেষ্টার অপরাধে রাজা রঘুপতিকে আট বছরের জন্য নির্বাসন দেন। নক্ষত্ররায়কেও আট বছরের নির্বাসন দেওয়া হয়।
 
-Top score: 0.640, retrieved chapters: [18, 18, 18, 18, 31]
+Top score: 0.640, retrieved chapters: [18, 31, 36, 5]
 
 Result: PASS
 
@@ -54,7 +54,7 @@ Result: PASS
 
 Expected: নক্ষত্ররায় ছত্রমাণিক্য নাম ধারণ করে রাজপদ গ্রহণ করেন।
 
-Top score: 0.619, retrieved chapters: [25, 25, 5, 38, 34]
+Top score: 0.619, retrieved chapters: [25, 5, 38, 34, 10, 14, 18]
 
 Result: PASS
 
@@ -62,7 +62,7 @@ Result: PASS
 
 Expected: তিনটি বালক আসলে শাহ সুজার তিন কন্যা, ছদ্মবেশে ছিল। ফকিরটি নিজেই সুজা।
 
-Top score: 0.621, retrieved chapters: [44, 44, 44, 44, 44]
+Top score: 0.621, retrieved chapters: [44, 44, 42, 45]
 
 Result: PASS
 
@@ -72,7 +72,7 @@ Expected: বইটিতে এই তথ্য নেই, তাই চ্য�
 
 No-answer question: stopped by score gate
 
-Top score: 0.395, retrieved chapters: [36, 36, 42, 29, 25]
+Top score: 0.395, retrieved chapters: [36, 42, 29, 25, 14, 16, 37]
 
 Result: PASS
 
@@ -82,7 +82,7 @@ Expected: মন্দিরটি বইয়ে বারবার আছে 
 
 No-answer question: passed to LLM, which must refuse
 
-Top score: 0.537, retrieved chapters: [3, 4, 1, 4, 9]
+Top score: 0.537, retrieved chapters: [3, 4, 1, 9, 2, 21]
 
 Result: PASS
 
