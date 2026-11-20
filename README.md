@@ -2,6 +2,10 @@
 
 A chatbot that answers questions about one Bangla book, রাজর্ষি by রবীন্দ্রনাথ ঠাকুর, using a RAG pipeline. Every answer comes only from the book and cites the chapter (পরিচ্ছেদ) it came from. If the answer is not in the book, the bot says so.
 
+## Demo video
+
+https://drive.google.com/file/d/1mhwBmfT_LVnrvClhJaIqWJuNJ_JRsyY1/view?usp=sharing
+
 ## Book
 
 - Title: রাজর্ষি (1961 edition), রবীন্দ্রনাথ ঠাকুর
